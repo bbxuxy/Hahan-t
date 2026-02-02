@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Presentation Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Itim&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Itim', cursive;
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 1); /* สีขาวทึบตามที่ขอ */
+            border-radius: 40px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border: 8px solid #f8f9fa;
+        }
+
+        .input-style {
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            border: 2px solid #eee;
+            background: #fdfdfd;
+        }
+
+        .input-style:focus {
+            border-color: #a1c4fd;
+            outline: none;
+            transform: scale(1.02);
+        }
+
+        .btn-style {
+            background: #a1c4fd;
+            color: white;
+            border-radius: 20px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 15px rgba(161, 196, 253, 0.4);
+        }
+
+        .btn-style:hover {
+            transform: translateY(-3px) scale(1.05);
+            background: #89b4f7;
+        }
+
+        .modal-overlay {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .check-mark {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #7ed321;
+            color: white;
+            font-size: 50px;
+            box-shadow: 0 10px 20px rgba(126, 211, 33, 0.3);
+        }
+        
+        /* จัดวางปุ่มโลกให้กลมกลืน */
+        .globe-btn {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <div onclick="openAdminModal()" class="globe-btn animate__animated animate__fadeIn">
+        🌐
+    </div>
+
+    <div id="mainPage" class="glass-card p-12 w-full max-w-md text-center animate__animated animate__zoomIn">
+        <h1 class="text-6xl font-bold mb-10 text-gray-700">My presentation</h1>
+        <div class="space-y-6">
+            <input type="text" id="workCodeInput" placeholder="ใส่รหัสชิ้นงาน" class="input-style w-full p-4 text-center text-2xl">
+            <button onclick="checkWorkCode()" class="btn-style w-full py-4 text-2xl font-bold">ยืนยันรหัส</button>
+        </div>
+    </div>
+
+    <div id="adminAuthModal" class="modal-overlay">
+        <div class="glass-card p-10 w-80 text-center animate__animated animate__bounceIn">
+            <h2 class="text-2xl font-bold mb-6">รหัสผู้สร้าง</h2>
+            <input type="password" id="adminPassInput" class="input-style w-full p-3 mb-6 text-center text-xl">
+            <div class="flex gap-3 justify-center">
+                <button onclick="closeModal('adminAuthModal')" class="bg-gray-100 px-6 py-2 rounded-2xl text-gray-500">ยกเลิก</button>
+                <button onclick="verifyAdmin()" class="btn-style px-6 py-2">เข้าสู่ระบบ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addWorkModal" class="modal-overlay">
+        <div class="glass-card p-10 w-full max-w-sm animate__animated animate__fadeInUp">
+            <h2 class="text-3xl font-bold mb-8 text-center text-gray-700">สร้างบทพรีเซ็นต์</h2>
+            <div class="space-y-5">
+                <input type="text" id="newCode" class="input-style w-full p-4 text-lg" placeholder="รหัสชิ้นงานใหม่">
+                <textarea id="newContent" rows="5" class="input-style w-full p-4 text-lg" placeholder="บทพรีเซ็นต์ของคุณ..."></textarea>
+                <button onclick="addNewWork()" class="btn-style w-full py-4 text-xl font-bold">เพิ่มชิ้นงาน</button>
+                <button onclick="closeModal('addWorkModal')" class="w-full text-gray-400">ย้อนกลับ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="successAnim" class="modal-overlay">
+        <div class="check-mark animate__animated animate__jackInTheBox">
+            ✓
+        </div>
+    </div>
+
+    <div id="contentDisplay" class="modal-overlay">
+        <div class="glass-card p-12 w-full max-w-2xl text-center animate__animated animate__zoomIn">
+            <h2 id="displayTitle" class="text-4xl font-bold mb-6 text-blue-400"></h2>
+            <div class="bg-blue-50 p-8 rounded-[30px] mb-8">
+                <p id="displayText" class="text-2xl text-gray-700 leading-relaxed"></p>
+            </div>
+            <button onclick="closeModal('contentDisplay')" class="btn-style px-12 py-3 text-xl">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnoQpGJ9yVLxXNd-d0mgSC4MThgsS2bw4",
+            authDomain: "present-14d6f.firebaseapp.com",
+            databaseURL: "https://present-14d6f-default-rtdb.firebaseio.com/",
+            projectId: "present-14d6f",
+            storageBucket: "present-14d6f.firebasestorage.app",
+            messagingSenderId: "677671543663",
+            appId: "1:677671543663:web:1f64214a651bb217ad7e9a",
+            measurementId: "G-S23KQKZ88X"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const ADMIN_CODE = "18112012";
+
+        // ฟังก์ชันส่งออกไปที่ window เพื่อให้ปุ่ม HTML เรียกใช้ได้
+        window.openAdminModal = () => document.getElementById('adminAuthModal').style.display = 'flex';
+        window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
+        window.verifyAdmin = () => {
+            const pass = document.getElementById('adminPassInput').value;
+            if(pass === ADMIN_CODE) {
+                closeModal('adminAuthModal');
+                document.getElementById('addWorkModal').style.display = 'flex';
+                document.getElementById('adminPassInput').value = "";
+            } else {
+                alert("รหัสไม่ถูกต้องครับ");
+            }
+        };
+
+        window.addNewWork = async () => {
+            const code = document.getElementById('newCode').value.trim();
+            const content = document.getElementById('newContent').value.trim();
+
+            if(code && content) {
+                await set(ref(db, 'presentations/' + code), {
+                    content: content
+                });
+                alert("บันทึกข้อมูลลง Database สำเร็จ!");
+                closeModal('addWorkModal');
+                document.getElementById('newCode').value = "";
+                document.getElementById('newContent').value = "";
+            } else {
+                alert("กรอกข้อมูลไม่ครบนะ");
+            }
+        };
+
+        window.checkWorkCode = async () => {
+            const code = document.getElementById('workCodeInput').value.trim();
+            const dbRef = ref(db);
+            
+            try {
+                const snapshot = await get(child(dbRef, `presentations/${code}`));
+                if (snapshot.exists()) {
+                    const successDiv = document.getElementById('successAnim');
+                    successDiv.style.display = 'flex';
+
+                    setTimeout(() => {
+                        successDiv.style.display = 'none';
+                        document.getElementById('displayTitle').innerText = code;
+                        document.getElementById('displayText').innerText = snapshot.val().content;
+                        document.getElementById('contentDisplay').style.display = 'flex';
+                    }, 1000);
+                } else {
+                    alert("ไม่พบรหัสชิ้นงานนี้ในระบบ");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+            }
+        };
+    </script>
+</body>
+</html>
